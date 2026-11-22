@@ -67,7 +67,7 @@ async function measureDownload() {
   );
   const sizes = await Promise.all(requests);
   const elapsed = performance.now() - started;
-  return { mbps: sizes.reduce((sum, size) => sum + size, 0) * 8 / elapsed / 1e6, elapsed };
+  return { mbps: sizes.reduce((sum, size) => sum + size, 0) * 8 / elapsed / 1000, elapsed };
 }
 async function measureUpload() {
   const payload = new Uint8Array(4 * 1024 * 1024);
@@ -85,7 +85,7 @@ async function measureUpload() {
   );
   await Promise.all(requests);
   const elapsed = performance.now() - started;
-  return { mbps: payload.byteLength * requests.length * 8 / elapsed / 1e6, elapsed };
+  return { mbps: payload.byteLength * requests.length * 8 / elapsed / 1000, elapsed };
 }
 async function measureLatency() {
   const samples = [];
