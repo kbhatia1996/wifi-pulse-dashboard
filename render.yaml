@@ -1,0 +1,7 @@
+services:
+  - type: web
+    name: wifi-pulse
+    runtime: node
+    buildCommand: npm install
+    startCommand: npm start
+    healthCheckPath: /api/ping

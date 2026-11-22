@@ -1,0 +1,108 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#070b19" />
+    <meta name="description" content="A beautiful, read-only Wi-Fi speed and connection dashboard." />
+    <title>Wi-Fi Pulse</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <div class="ambient ambient-one"></div>
+    <div class="ambient ambient-two"></div>
+    <main class="shell">
+      <header class="topbar">
+        <a class="brand" href="/" aria-label="Wi-Fi Pulse home">
+          <span class="brand-mark"><span></span><span></span><span></span></span>
+          <span>Wi-Fi <b>Pulse</b></span>
+        </a>
+        <div class="top-actions">
+          <span class="live-pill"><i></i> Live monitor</span>
+          <button class="icon-button" id="theme-toggle" aria-label="Toggle theme">☼</button>
+        </div>
+      </header>
+
+      <section class="hero">
+        <div>
+          <p class="eyebrow">YOUR CONNECTION, DECODED</p>
+          <h1>Know your network.<br /><em>Feel the flow.</em></h1>
+          <p class="hero-copy">A read-only pulse check for the Wi-Fi you are using right now. No router settings touched.</p>
+        </div>
+        <div class="status-card">
+          <span class="status-orbit"></span>
+          <div>
+            <p class="muted">Connection status</p>
+            <strong id="connection-status">Ready to test</strong>
+            <small id="last-tested">No measurement yet</small>
+          </div>
+        </div>
+      </section>
+
+      <section class="control-row">
+        <button class="primary-button" id="run-test"><span class="button-icon">↗</span> Run speed test <span class="shortcut">⌘ ↵</span></button>
+        <p class="test-note"><span class="shield">◈</span> Read-only · Your network settings stay untouched</p>
+      </section>
+
+      <section class="metrics-grid">
+        <article class="speed-card card">
+          <div class="card-heading"><span><span class="metric-icon down">↓</span> Download</span><span class="card-tag">Mbps</span></div>
+          <div class="gauge-wrap">
+            <svg class="gauge" viewBox="0 0 220 130" aria-hidden="true">
+              <path class="gauge-track" d="M 25 110 A 85 85 0 0 1 195 110" />
+              <path class="gauge-value down-stroke" id="download-arc" d="M 25 110 A 85 85 0 0 1 195 110" />
+            </svg>
+            <div class="gauge-value-label"><strong id="download-value">—</strong><span>Mbps</span></div>
+          </div>
+          <div class="meter"><span id="download-meter"></span></div>
+          <p class="metric-foot"><span id="download-quality">Waiting for a test</span><span id="download-time">—</span></p>
+        </article>
+
+        <article class="speed-card card">
+          <div class="card-heading"><span><span class="metric-icon up">↑</span> Upload</span><span class="card-tag">Mbps</span></div>
+          <div class="gauge-wrap">
+            <svg class="gauge" viewBox="0 0 220 130" aria-hidden="true">
+              <path class="gauge-track" d="M 25 110 A 85 85 0 0 1 195 110" />
+              <path class="gauge-value up-stroke" id="upload-arc" d="M 25 110 A 85 85 0 0 1 195 110" />
+            </svg>
+            <div class="gauge-value-label"><strong id="upload-value">—</strong><span>Mbps</span></div>
+          </div>
+          <div class="meter"><span id="upload-meter"></span></div>
+          <p class="metric-foot"><span id="upload-quality">Waiting for a test</span><span id="upload-time">—</span></p>
+        </article>
+
+        <article class="latency-card card">
+          <div class="card-heading"><span><span class="metric-icon ping">⌁</span> Latency</span><span class="card-tag">ms</span></div>
+          <div class="latency-value"><strong id="latency-value">—</strong><span>milliseconds</span></div>
+          <div class="latency-bars" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+          <p class="metric-foot"><span id="latency-quality">Waiting for a test</span><span id="latency-time">—</span></p>
+        </article>
+      </section>
+
+      <section class="lower-grid">
+        <article class="chart-card card">
+          <div class="card-heading"><span>Speed history</span><span class="legend"><i></i> Download <i></i> Upload</span></div>
+          <div class="chart-wrap"><canvas id="history-chart" height="180"></canvas><div class="empty-chart" id="empty-chart">Run a test to start your history</div></div>
+          <div class="chart-axis"><span>Earlier</span><span>Now</span></div>
+        </article>
+        <article class="details-card card">
+          <div class="card-heading"><span>Connection details</span><span class="read-only">READ ONLY</span></div>
+          <dl class="details-list">
+            <div><dt>Network type</dt><dd id="network-type">Detecting…</dd></div>
+            <div><dt>Effective connection</dt><dd id="effective-type">Detecting…</dd></div>
+            <div><dt>Browser estimate</dt><dd id="browser-downlink">Detecting…</dd></div>
+            <div><dt>Browser RTT</dt><dd id="browser-rtt">Detecting…</dd></div>
+            <div><dt>Online since</dt><dd id="online-since">—</dd></div>
+          </dl>
+          <p class="details-note">Browser-provided details are estimates. Speed-test results are measured from this dashboard server.</p>
+        </article>
+      </section>
+
+      <footer><span>Wi-Fi Pulse <b>·</b> A calm read on your connection</span><span>Measurements are approximate and vary with network load.</span></footer>
+    </main>
+    <script src="/app.js"></script>
+  </body>
+</html>
