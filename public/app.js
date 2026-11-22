@@ -18,7 +18,7 @@ function setGauge(arc, meter, value, max = 250) {
   meter.style.width = `${ratio * 100}%`;
 }
 function updateMetric(kind, value, elapsed) {
-  const formatted = value == null ? "—" : value < 10 ? value.toFixed(1) : Math.round(value).toString();
+  const formatted = value == null ? "—" : value < 1 ? value.toFixed(2) : value < 10 ? value.toFixed(1) : Math.round(value).toString();
   setText(`#${kind}-value`, formatted);
   setText(`#${kind}-quality`, quality(value, kind));
   setText(`#${kind}-time`, elapsed ? `${(elapsed / 1000).toFixed(1)}s` : "—");
@@ -58,6 +58,10 @@ async function timedFetch(url, options = {}) {
 async function measureDownload() {
   const started = performance.now();
   const { response } = await timedFetch("/api/download?bytes=8388608");
+  if (!response.body) {
+    const body = await response.arrayBuffer();
+    return { mbps: body.byteLength * 8 / (performance.now() - started) / 1e6, elapsed: performance.now() - started };
+  }
   const reader = response.body.getReader();
   let bytes = 0, last = started;
   while (true) {
@@ -93,9 +97,12 @@ async function runTest() {
   state.testing = true; $("#run-test").disabled = true;
   setText("#connection-status", "Measuring connection…"); setText("#last-tested", "Working from this browser");
   try {
+    setText("#connection-status", "Measuring latency…");
     const latency = await measureLatency();
     setText("#latency-value", latency); setText("#latency-quality", quality(latency, "latency")); setText("#latency-time", "3 samples");
+    setText("#connection-status", "Measuring download…");
     const download = await measureDownload(); updateMetric("download", download.mbps, download.elapsed);
+    setText("#connection-status", "Measuring upload…");
     const upload = await measureUpload(); updateMetric("upload", upload.mbps, upload.elapsed);
     history.push({ download: download.mbps, upload: upload.mbps }); if (history.length > 10) history.shift();
     $("#empty-chart").hidden = true; drawHistory();
