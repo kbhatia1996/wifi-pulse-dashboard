@@ -1,10 +1,30 @@
 const $ = (selector) => document.querySelector(selector);
-const history = [];
+const HISTORY_KEY = "wifi-pulse-history-v1";
+const HISTORY_LIMIT = 30;
+const history = loadHistory();
 const state = { testing: false };
 const downloadArc = $("#download-arc");
 const uploadArc = $("#upload-arc");
 const circumference = 267;
 
+function loadHistory() {
+  try {
+    const saved = JSON.parse(localStorage.getItem(HISTORY_KEY) || "[]");
+    if (!Array.isArray(saved)) return [];
+    return saved
+      .filter((item) => Number.isFinite(item.download) && Number.isFinite(item.upload))
+      .slice(-HISTORY_LIMIT);
+  } catch {
+    return [];
+  }
+}
+function saveHistory() {
+  try {
+    localStorage.setItem(HISTORY_KEY, JSON.stringify(history.slice(-HISTORY_LIMIT)));
+  } catch {
+    // Private browsing may disable storage; the live chart still works.
+  }
+}
 function setText(selector, value) { $(selector).textContent = value; }
 function nowLabel() { return new Intl.DateTimeFormat([], { hour: "numeric", minute: "2-digit" }).format(new Date()); }
 function quality(value, type) {
@@ -108,7 +128,9 @@ async function runTest() {
     const download = await measureDownload(); updateMetric("download", download.mbps, download.elapsed);
     setText("#connection-status", "Measuring upload…");
     const upload = await measureUpload(); updateMetric("upload", upload.mbps, upload.elapsed);
-    history.push({ download: download.mbps, upload: upload.mbps }); if (history.length > 10) history.shift();
+    history.push({ download: download.mbps, upload: upload.mbps, timestamp: Date.now() });
+    while (history.length > HISTORY_LIMIT) history.shift();
+    saveHistory();
     $("#empty-chart").hidden = true; drawHistory();
     setText("#connection-status", "Connection looks good"); setText("#last-tested", `Last tested at ${nowLabel()}`);
   } catch (error) {
@@ -127,3 +149,7 @@ $("#run-test").addEventListener("click", runTest);
 window.addEventListener("resize", drawHistory);
 $("#theme-toggle").addEventListener("click", () => { document.body.classList.toggle("light"); drawHistory(); });
 readConnectionDetails(); window.addEventListener("online", readConnectionDetails); window.addEventListener("offline", readConnectionDetails);
+if (history.length) {
+  $("#empty-chart").hidden = true;
+  drawHistory();
+}
