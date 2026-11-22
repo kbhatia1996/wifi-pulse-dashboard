@@ -57,31 +57,35 @@ async function timedFetch(url, options = {}) {
 }
 async function measureDownload() {
   const started = performance.now();
-  const { response } = await timedFetch("/api/download?bytes=8388608");
-  if (!response.body) {
-    const body = await response.arrayBuffer();
-    return { mbps: body.byteLength * 8 / (performance.now() - started) / 1e6, elapsed: performance.now() - started };
-  }
-  const reader = response.body.getReader();
-  let bytes = 0, last = started;
-  while (true) {
-    const chunk = await reader.read();
-    if (chunk.done) break;
-    bytes += chunk.value.byteLength;
-    const current = performance.now();
-    if (current - last > 100) {
-      setText("#download-value", (bytes * 8 / (current - started) / 1e6).toFixed(1));
-      last = current;
-    }
-  }
-  return { mbps: bytes * 8 / (performance.now() - started) / 1e6, elapsed: performance.now() - started };
+  const requests = Array.from({ length: 4 }, (_, index) =>
+    fetch(`https://speed.cloudflare.com/__down?bytes=8388608&stream=${index}&cacheBust=${crypto.randomUUID()}`, {
+      cache: "no-store"
+    }).then(async (response) => {
+      if (!response.ok) throw new Error(`Download request failed (${response.status})`);
+      return (await response.arrayBuffer()).byteLength;
+    })
+  );
+  const sizes = await Promise.all(requests);
+  const elapsed = performance.now() - started;
+  return { mbps: sizes.reduce((sum, size) => sum + size, 0) * 8 / elapsed / 1e6, elapsed };
 }
 async function measureUpload() {
   const payload = new Uint8Array(4 * 1024 * 1024);
   const started = performance.now();
-  const { response } = await timedFetch("/api/upload", { method: "POST", headers: { "Content-Type": "application/octet-stream" }, body: payload });
-  await response.json();
-  return { mbps: payload.byteLength * 8 / (performance.now() - started) / 1e6, elapsed: performance.now() - started };
+  const requests = Array.from({ length: 4 }, () =>
+    fetch(`https://speed.cloudflare.com/__up?cacheBust=${crypto.randomUUID()}`, {
+      method: "POST",
+      cache: "no-store",
+      headers: { "Content-Type": "application/octet-stream" },
+      body: payload
+    }).then((response) => {
+      if (!response.ok) throw new Error(`Upload request failed (${response.status})`);
+      return response;
+    })
+  );
+  await Promise.all(requests);
+  const elapsed = performance.now() - started;
+  return { mbps: payload.byteLength * requests.length * 8 / elapsed / 1e6, elapsed };
 }
 async function measureLatency() {
   const samples = [];
